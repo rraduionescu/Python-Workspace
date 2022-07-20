@@ -32,7 +32,6 @@ click_rates = []
 
 html_data = ''
 parser = OngageStatParser()
-file = open("Campaigns Overview.html", "r")
 
 path = '/Users/IonescuRadu/Downloads'
 for filename in glob.glob(os.path.join(path, '*.html')):

@@ -65,10 +65,10 @@ for i in sent_indices:
     sent.append(int(str(all_data[i]).replace(',', '', 1)))
 for i in open_indices:
     opens.append(int(str(all_data[i]).replace(',', '', 1)))
-    open_rates.append(float(str(all_data[i + 2]).replace('%', '', 1)) / 100)
+    open_rates.append(all_data[i + 2])
 for i in click_indices:
     clicks.append(int(str(all_data[i]).replace(',', '', 1)))
-    click_rates.append(float(str(all_data[i + 2]).replace('%', '', 1)) / 100)
+    click_rates.append(all_data[i + 2])
 
 campaign_dates_string = []
 for date in campaign_dates:
@@ -101,12 +101,12 @@ column_2 = 'List'
 column_3 = 'Subject'
 column_4 = 'Mailer count'
 column_5 = 'Open Rate'
-column_b = 'B'
-column_c = 'C'
-column_6 = 'CTR'
-column_7 = 'Sent number'
-column_8 = 'Open Number'
-column_9 = 'Clicks Number'
+column_b = 'Template'
+column_6 = 'Partner|Network|Channel'
+column_7 = 'CTR'
+column_8 = 'Sent number'
+column_9 = 'Open Number'
+column_10 = 'Clicks Number'
 
 data_frame = pd.DataFrame(
     {
@@ -117,13 +117,14 @@ data_frame = pd.DataFrame(
         column_4: ['', '', '', ''],
         column_5: open_rates,
         column_b: ['', '', '', ''],
-        column_c: ['', '', '', ''],
-        column_6: click_rates,
-        column_7: sent,
-        column_8: opens,
-        column_9: clicks
+        column_6: campaign_names,
+        column_7: click_rates,
+        column_8: sent,
+        column_9: opens,
+        column_10: clicks
     })
-data_frame.to_excel('/Users/IonescuRadu/Downloads/5.xlsx', sheet_name='sheet1', index=False)
+
+# data_frame.to_excel('/Users/IonescuRadu/Downloads/5.xlsx', sheet_name='sheet1', index=False)
 
 google_client = pygsheets.authorize(service_file='/Users/IonescuRadu/Downloads/ongagestats-6436213ca729.json')
 book = google_client.open('MAILER_REPORT')

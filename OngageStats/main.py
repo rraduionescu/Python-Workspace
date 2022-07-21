@@ -64,10 +64,10 @@ for i in sent_indices:
     sent.append(int(str(all_data[i]).replace(',', '', 1)))
 for i in open_indices:
     opens.append(int(str(all_data[i]).replace(',', '', 1)))
-    open_rates.append(all_data[i + 2])
+    open_rates.append(float(str(all_data[i + 2]).replace('%', '', 1)) / 100)
 for i in click_indices:
     clicks.append(int(str(all_data[i]).replace(',', '', 1)))
-    click_rates.append(all_data[i + 2])
+    click_rates.append(float(str(all_data[i + 2]).replace('%', '', 1)) / 100)
 
 campaign_dates_string = []
 for date in campaign_dates:
@@ -95,6 +95,7 @@ for i in range(4):
     ))
 
 column_1 = 'Date'
+column_e = ''
 column_2 = 'List'
 column_3 = 'Subject'
 column_4 = 'Mailer count'
@@ -105,6 +106,16 @@ column_8 = 'Open Number'
 column_9 = 'Clicks Number'
 
 data_frame = pd.DataFrame(
-    {column_1: campaign_dates_string, column_2: list_names, column_3: subjects, column_4: ['', '', '', ''], column_5: open_rates,
-     column_6: click_rates, column_7: sent, column_8: opens, column_9: clicks})
+    {
+        column_1: campaign_dates_string,
+        column_e: ['', '', '', ''],
+        column_2: list_names,
+        column_3: subjects,
+        column_4: ['', '', '', ''],
+        column_5: open_rates,
+        column_6: click_rates,
+        column_7: sent,
+        column_8: opens,
+        column_9: clicks
+    })
 data_frame.to_excel('/Users/IonescuRadu/Downloads/5.xlsx', sheet_name='sheet1', index=False)

@@ -49,10 +49,10 @@ open_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unique Opens -' in x
 click_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unique Clicks -' in x]
 
 for i in campaign_date_indices:
-    f = [idx for idx in range(len(all_data[i])) if all_data[i][idx].isupper()]
-    l = [idx for idx in range(len(all_data[i])) if all_data[i][idx] == '2']
-    if f and l:
-        c_date = all_data[i][f[0]: l[-1] + 1]
+    first = [idx for idx in range(len(all_data[i])) if all_data[i][idx].isupper()]
+    last = [idx for idx in range(len(all_data[i])) if all_data[i][idx] == '2']
+    if first and last:
+        c_date = all_data[i][first[0]: last[-1] + 1]
         if validate_date(c_date):
             campaign_dates.append(validate_date(c_date))
 for i in subject_indices:
@@ -96,38 +96,65 @@ for i in range(4):
     ))
 
 column_1 = 'Date'
-column_a = 'A'
 column_2 = 'List'
 column_3 = 'Subject'
 column_4 = 'Mailer count'
 column_5 = 'Open Rate'
-column_b = 'Template'
-column_6 = 'Partner|Network|Channel'
-column_7 = 'CTR'
-column_8 = 'Sent number'
-column_9 = 'Open Number'
-column_10 = 'Clicks Number'
+column_6 = 'Template'
+column_7 = 'Partner|Network|Channel'
+column_8 = 'CTR'
+column_9 = 'Sent number'
+column_10 = 'Open Number'
+column_11 = 'Clicks Number'
 
-data_frame = pd.DataFrame(
+# ============ INTERNAL FORMAT ============
+data_frame_internal = pd.DataFrame(
     {
         column_1: campaign_dates_string,
-        column_a: ['', '', '', ''],
+        'Empty1': ['', '', '', ''],
         column_2: list_names,
         column_3: subjects,
-        column_4: ['', '', '', ''],
+        'Empty2': ['', '', '', ''],
         column_5: open_rates,
-        column_b: ['', '', '', ''],
-        column_6: campaign_names,
-        column_7: click_rates,
-        column_8: sent,
-        column_9: opens,
-        column_10: clicks
+        'Empty3': ['', '', '', ''],
+        column_7: campaign_names,
+        column_8: click_rates,
+        column_9: sent,
+        column_10: opens,
+        column_11: clicks
     })
+
+# ============ EXTERNAL FORMAT ============
+data_frame_external = pd.DataFrame(
+    {
+        column_1: campaign_dates_string,
+        'Empty1': ['', '', '', ''],
+        column_2: list_names,
+        column_3: subjects,
+        'Empty2': ['', '', '', ''],
+        column_5: open_rates,
+        column_6: ['', '', '', ''],
+        column_7: campaign_names,
+        column_8: click_rates,
+        'Empty3': ['', '', '', ''],
+        'Empty4': ['', '', '', ''],
+        'Empty5': ['', '', '', ''],
+        'Empty6': ['', '', '', ''],
+        column_9: sent,
+        'Empty7': ['', '', '', ''],
+        'Empty8': ['', '', '', ''],
+        'Empty9': ['', '', '', ''],
+        'Empty10': ['', '', '', ''],
+        column_10: opens,
+        column_11: clicks
+    })
+
 
 # data_frame.to_excel('/Users/IonescuRadu/Downloads/5.xlsx', sheet_name='sheet1', index=False)
 
 google_client = pygsheets.authorize(service_file='/Users/IonescuRadu/Downloads/ongagestats-6436213ca729.json')
 book = google_client.open('MAILER_REPORT')
-work_sheet = book[0]
+work_sheet = book[1]
 
-work_sheet.set_dataframe(data_frame, (494, 2), copy_head=False)
+work_sheet.set_dataframe(data_frame_external, (1051, 2), copy_head=False)
+# TODO - order lists !!!

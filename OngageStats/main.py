@@ -156,5 +156,5 @@ google_client = pygsheets.authorize(service_file='/Users/IonescuRadu/Downloads/o
 book = google_client.open('MAILER_REPORT')
 work_sheet = book[1]
 
-work_sheet.set_dataframe(data_frame_external, (1051, 2), copy_head=False)
+work_sheet.set_dataframe(data_frame_external, (4, 2), copy_head=False)
 # TODO - order lists !!!

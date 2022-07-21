@@ -1,3 +1,4 @@
+import pygsheets
 import pandas as pd
 import datetime
 import glob
@@ -95,11 +96,13 @@ for i in range(4):
     ))
 
 column_1 = 'Date'
-column_e = ''
+column_a = 'A'
 column_2 = 'List'
 column_3 = 'Subject'
 column_4 = 'Mailer count'
 column_5 = 'Open Rate'
+column_b = 'B'
+column_c = 'C'
 column_6 = 'CTR'
 column_7 = 'Sent number'
 column_8 = 'Open Number'
@@ -108,14 +111,22 @@ column_9 = 'Clicks Number'
 data_frame = pd.DataFrame(
     {
         column_1: campaign_dates_string,
-        column_e: ['', '', '', ''],
+        column_a: ['', '', '', ''],
         column_2: list_names,
         column_3: subjects,
         column_4: ['', '', '', ''],
         column_5: open_rates,
+        column_b: ['', '', '', ''],
+        column_c: ['', '', '', ''],
         column_6: click_rates,
         column_7: sent,
         column_8: opens,
         column_9: clicks
     })
 data_frame.to_excel('/Users/IonescuRadu/Downloads/5.xlsx', sheet_name='sheet1', index=False)
+
+google_client = pygsheets.authorize(service_file='/Users/IonescuRadu/Downloads/ongagestats-6436213ca729.json')
+book = google_client.open('MAILER_REPORT')
+work_sheet = book[0]
+
+work_sheet.set_dataframe(data_frame, (494, 2), copy_head=False)

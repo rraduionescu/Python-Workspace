@@ -1,4 +1,5 @@
 import pygsheets
+import imgkit
 import pandas as pd
 import datetime
 import glob
@@ -39,6 +40,9 @@ for filename in glob.glob(os.path.join(path, '*.html')):
     with open(os.path.join(os.getcwd(), filename), 'r') as file:
         html_data += file.read()
 parser.feed(html_data)
+
+options = {'width': 400, 'disable-smart-width': '', 'height': 900}
+imgkit.from_file('/Users/IonescuRadu/Downloads/1_files/blank.html', 'template.jpg', options=options)
 
 campaign_date_indices = [(i + 2) for i, x in enumerate(all_data) if 'Schedule' in x]
 subject_indices = [(i + 1) for i, x in enumerate(all_data) if 'Subject:' in x]
@@ -81,6 +85,8 @@ for i in range(4):
         list_names[i] = 'Network'
     if list_names[i] == 'Networks Guests':
         list_names[i] = 'Network Guest'
+    if ',' in str(campaign_names[i]):
+        campaign_names[i] = str(campaign_names[i]).replace(',', '\n').title()
 
 for i in range(4):
     print('Date: {} Subject: {} Open rate: {} Click rate: {} Sent: {} Open: {} Clicks: {} List: {}, Campaign: {}'.format(
@@ -92,7 +98,7 @@ for i in range(4):
         opens[i],
         clicks[i],
         list_names[i],
-        campaign_names[i],
+        str(campaign_names[i]).replace('\n', ','),
     ))
 
 column_1 = 'Date'

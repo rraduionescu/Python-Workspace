@@ -4,18 +4,12 @@ from PIL import Image
 from Google import Create_Service
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaFileUpload
 import pygsheets
 import imgkit
 import pandas as pd
 import datetime
 import glob
 import os
-import google.auth
 
 
 class OngageStatParser(HTMLParser):
@@ -29,36 +23,6 @@ def validate_date(date_text):
         return datetime.datetime.strptime(date_text, '%b %d, %Y')
     except ValueError:
         pass
-
-
-# def upload_basic():
-#     flow = InstalledAppFlow.from_client_secrets_file(
-#         '/Users/IonescuRadu/Downloads/client_secrets.json',
-#         ['https://www.googleapis.com/auth/drive.metadata.readonly'])
-#     creds = flow.run_local_server(port=0)
-#     # creds, _ = Credentials.from_authorized_user_file('/Users/IonescuRadu/Downloads/ongagestats-6436213ca729.json',
-#     #                                                  ['https://www.googleapis.com/auth/drive.metadata.readonly'])
-#
-#     try:
-#         # create gmail api client
-#         service = build('drive', 'v3', credentials=creds)
-#
-#         file_metadata = {'name': 'template.jpg'}
-#         media = MediaFileUpload('template.jpg',
-#                                 mimetype='image/jpeg')
-#         # pylint: disable=maybe-no-member
-#         file_d = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-#         print(F'File ID: {file_d.get("id")}')
-#
-#     except HttpError as error:
-#         print(F'An error occurred: {error}')
-#         file_d = None
-#
-#     return file_d.get('id')
-#
-#
-# if __name__ == '__main__':
-#     upload_basic()
 
 all_data = []
 
@@ -219,7 +183,7 @@ column_9 = 'Sent number'
 column_10 = 'Open Number'
 column_11 = 'Clicks Number'
 
-google_client = pygsheets.authorize(service_file='ongagestats-6436213ca729.json')
+google_client = pygsheets.authorize(service_file='ongagestats.json')
 book = google_client.open('MAILER REPORT TEST')
 work_sheet = book[1]
 
@@ -243,6 +207,10 @@ drive = GoogleDrive(auth)
 gfile = drive.CreateFile({'parents': [{'id': '1zzkbvlaaUZBQbJeD6-UktFT368Ui94Jl'}]})
 gfile.SetContentFile('template.jpg')
 gfile.Upload()
+file_id = gfile.get('id')
+print('testestest')
+print(gfile)
+print(gfile.get('embedLink'))
 
 # ============ INTERNAL FORMAT ============
 # data_frame_internal = pd.DataFrame(
@@ -299,7 +267,8 @@ data_frame_external5 = pd.DataFrame(
     })
 data_frame_external6 = pd.DataFrame(
     {
-        column_6: ['=IMAGE(\"' + gfile.get('selfLink') + '\")'],
+        #column_6: ['=image(\"https://drive.google.com/uc?export=view&id={}\")'.format(file_id)],
+        column_6: ['=image("' + gfile.get('embedLink') + '")'],
     })
 
 work_sheet.set_dataframe(data_frame_external1, (last_row, 2), copy_head=False)
@@ -314,5 +283,5 @@ print('\nDone\n\tStat data > Google Sheet')
 # TODO 1. Order lists !!!               DONE
 #      2. Email template height         DONE
 #      3. Insert after last line !!!    DONE
-#      4. Insert template !!!
+#      4. Insert template !!!           ALMOST
 #      5. Mailer sheet connection !!!

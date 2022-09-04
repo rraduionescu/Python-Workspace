@@ -280,8 +280,5 @@ work_sheet.set_dataframe(data_frame_external6, (last_row, 8), copy_head=False)
 
 print('\nDone\n\tStat data > Google Sheet')
 
-# TODO 1. Order lists !!!               DONE
-#      2. Email template height         DONE
-#      3. Insert after last line !!!    DONE
-#      4. Insert template !!!           ALMOST
-#      5. Mailer sheet connection !!!
+# TODO 1. Insert template !!!           ALMOST
+#      2. Mailer sheet connection !!!

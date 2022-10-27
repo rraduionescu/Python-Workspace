@@ -24,6 +24,7 @@ def validate_date(date_text):
     except ValueError:
         pass
 
+
 all_data = []
 
 list_names = []
@@ -45,7 +46,7 @@ for filename in glob.glob(os.path.join(path, '*.html')):
         html_data += file.read()
 parser.feed(html_data)
 
-options = {'width': 500, 'disable-smart-width': '', 'height': 5000}
+options = {'width': 500, 'disable-smart-width': '', 'height': 9000}
 imgkit.from_file('/Users/IonescuRadu/Downloads/1_files/blank.html', 'raw_template.jpg', options=options)
 print('\t Email template > JPG')
 
@@ -53,8 +54,8 @@ raw_image = Image.open('raw_template.jpg')
 raw_pixels = raw_image.load()
 bottom = 0
 for y in range(raw_image.height):
-    if raw_pixels[1, y] == (215, 215, 215):
-        bottom = y
+    if raw_pixels[1, raw_image.height - y - 1] == (255, 255, 255):
+        bottom = raw_image.height - y - 1
         break
 template = raw_image.crop((0, 0, raw_image.width, bottom))
 template.save('template.jpg')
@@ -69,9 +70,9 @@ click_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unique Clicks -' in
 
 for i in campaign_date_indices:
     first = [idx for idx in range(len(all_data[i])) if all_data[i][idx].isupper()]
-    last = [idx for idx in range(len(all_data[i])) if all_data[i][idx] == '2']
+    last = [idx for idx in range(len(all_data[i])) if all_data[i][idx] == ',']
     if first and last:
-        c_date = all_data[i][first[0]: last[-1] + 1]
+        c_date = all_data[i][first[0]: last[-1]]
         if validate_date(c_date):
             campaign_dates.append(validate_date(c_date))
 for i in subject_indices:
@@ -91,18 +92,17 @@ for i in click_indices:
 
 campaign_dates_string = []
 for date in campaign_dates:
-    campaign_dates_string.append(date.strftime('%d.%m.%Y'))
+    campaign_dates_string.append(date.strftime('%d/%m/%Y'))
 
-for i in range(4):
+for i in range(len(list_names)):
     if list_names[i] == 'All Lists-Go':
-        list_names[i] = 'Get Openers'
+        list_names[i] = 'GO'
     if list_names[i] == 'Networks':
-        list_names[i] = 'Network'
-    if list_names[i] == 'Networks Guests':
-        list_names[i] = 'Network Guest'
+        list_names[i] = 'NW'
+    if list_names[i] == 'Never Joined':
+        list_names[i] = 'NJ'
     if ',' in str(campaign_names[i]):
         campaign_names[i] = str(campaign_names[i]).replace(',', '\n').title()
-
 
 list_names_ordered = list_names.copy()
 campaign_dates_string_ordered = campaign_dates_string.copy()
@@ -113,7 +113,7 @@ open_rates_ordered = open_rates.copy()
 click_rates_ordered = click_rates.copy()
 opens_ordered = opens.copy()
 clicks_ordered = clicks.copy()
-for i in range(4):
+for i in range(len(list_names)):
     if list_names[i] == 'Never Joined':
         list_names_ordered[0] = list_names[i]
         campaign_dates_string_ordered[0] = campaign_dates_string[i]
@@ -134,7 +134,7 @@ for i in range(4):
         click_rates_ordered[1] = click_rates[i]
         opens_ordered[1] = opens[i]
         clicks_ordered[1] = clicks[i]
-    if list_names[i] == 'Network Guest':
+    if list_names[i] == 'Get Openers':
         list_names_ordered[2] = list_names[i]
         campaign_dates_string_ordered[2] = campaign_dates_string[i]
         campaign_names_ordered[2] = campaign_names[i]
@@ -144,19 +144,9 @@ for i in range(4):
         click_rates_ordered[2] = click_rates[i]
         opens_ordered[2] = opens[i]
         clicks_ordered[2] = clicks[i]
-    if list_names[i] == 'Get Openers':
-        list_names_ordered[3] = list_names[i]
-        campaign_dates_string_ordered[3] = campaign_dates_string[i]
-        campaign_names_ordered[3] = campaign_names[i]
-        subjects_ordered[3] = subjects[i]
-        sent_ordered[3] = sent[i]
-        open_rates_ordered[3] = open_rates[i]
-        click_rates_ordered[3] = click_rates[i]
-        opens_ordered[3] = opens[i]
-        clicks_ordered[3] = clicks[i]
 
 print('\nCampaign Stats ---------------------------------------------------------------------------------------------')
-for i in range(4):
+for i in range(len(list_names_ordered)):
     print(
         'Date: {} Campaign: {} List: {} \nSubject: {} \n\tSent: {} \n\tOpen rate: {} \n\tClick rate: {} \n\tOpen: {} \n\tClicks: {}'.format(
             campaign_dates_string_ordered[i],
@@ -171,114 +161,96 @@ for i in range(4):
         ))
 print('------------------------------------------------------------------------------------------------------------')
 
-column_1 = 'Date'
-column_2 = 'List'
-column_3 = 'Subject'
-column_4 = 'Mailer count'
-column_5 = 'Open Rate'
-column_6 = 'Template'
-column_7 = 'Partner|Network|Channel'
-column_8 = 'CTR'
-column_9 = 'Sent number'
-column_10 = 'Open Number'
-column_11 = 'Clicks Number'
+column_A = 'Mail #'
+column_B = 'Date'
+column_C = 'Partner'
+column_D = 'Subject'
+column_E = 'Template'
+column_F = 'List'
+column_G = 'Sent #'
+column_H = 'Open %'
+column_I = 'Open #'
+column_J = 'Click %'
+column_K = 'Click #'
+column_L = 'Unsub #'
+column_M = 'Compl #'
+column_N = 'Swipe'
 
 google_client = pygsheets.authorize(service_file='ongagestats.json')
-book = google_client.open('MAILER REPORT TEST')
-work_sheet = book[1]
+book = google_client.open('Mailer Report')
+work_sheet = book[0]
+work_sheet_raw = book[1]
 
-CL = '/Users/IonescuRadu/Downloads/secret.json'
+CL = 'client_secrets.json'
 AS = 'sheets'
 AV = 'v4'
 SC = ['https://www.googleapis.com/auth/spreadsheets']
-ID = '1kKda6OBFREefrlOBBSeIuEBGT_DttdTbtmfk5qjrrWE'
+ID = '1Em4gIwCA73nPi_dUJY5hTvSdH6b57JD9Oz5X2qnZ1AY'
 
 service = Create_Service(CL, AS, AV, SC)
 response = service.spreadsheets().values().get(
     spreadsheetId=ID,
-    range='OUTGOING | EXTERNAL!F4:F',
+    range='OUTGOING!A2:A',
 ).execute()
 last_row = len(response['values']) + 4
-counter = int(response['values'][-1][0]) + 1
-campaign_names_ordered.append(campaign_names_ordered[3])
+counter = int(response['values'][-1][0].split('\n')[0]) + 1
+response = service.spreadsheets().values().get(
+    spreadsheetId=ID,
+    range='DATA!A1:A',
+).execute()
+last_raw_row = len(response['values']) + 1
 
 auth = GoogleAuth()
 drive = GoogleDrive(auth)
-gfile = drive.CreateFile({'parents': [{'id': '1zzkbvlaaUZBQbJeD6-UktFT368Ui94Jl'}]})
-gfile.SetContentFile('template.jpg')
-gfile.Upload()
-file_id = gfile.get('id')
-print('testestest')
-print(gfile)
-print(gfile.get('embedLink'))
+googleFile = drive.CreateFile({'parents': [{'id': '1ECMflv2bw6ecDtt7q0TsG5Q4EIaDnsW5'}],
+                               'title': datetime.datetime.strptime(campaign_dates_string_ordered[2], '%d/%m/%Y').strftime('%b %d, %Y') + '.jpg'})
+googleFile.SetContentFile('template.jpg')
+googleFile.Upload()
+file_id = googleFile.get('id')
 
-# ============ INTERNAL FORMAT ============
-# data_frame_internal = pd.DataFrame(
-#     {
-#         column_1: campaign_dates_string_ordered,
-#         'Empty1': ['', '', '', ''],
-#         column_2: list_names_ordered,
-#         column_3: subjects_ordered,
-#         'Empty2': ['', '', '', ''],
-#         column_5: open_rates_ordered,
-#         'Empty3': ['', '', '', ''],
-#         column_7: campaign_names_ordered[],
-#         column_8: click_rates_ordered,
-#         column_9: sent_ordered,
-#         column_10: opens_ordered,
-#         column_11: clicks_ordered,
-#     })
-
-# ============ EXTERNAL FORMAT ============
-data_frame_external1 = pd.DataFrame(
+mail_no = (str(counter) + '\n' + 'INT') if campaign_names_ordered[0] == 'LDI' else (str(counter) + '\n' + 'EXT')
+data_frame_1 = pd.DataFrame(
     {
-        column_1: campaign_dates_string_ordered,
-        'Empty1': ['', '', '', ''],
-        column_2: list_names_ordered,
-        column_3: subjects_ordered,
+        column_A: [mail_no],
+        column_B: [campaign_dates_string_ordered[0]],
+        column_C: [campaign_names_ordered[0]],
+        column_D: [subjects_ordered[0]],
+        column_E: ['=image("' + googleFile.get('embedLink') + '")'],
     })
-data_frame_external2 = pd.DataFrame(
+data_frame_2 = pd.DataFrame(
     {
-        'Empty2': ['', '', '', '', str(counter)],
+        column_F: list_names_ordered,
+        column_G: sent_ordered,
+        column_H: open_rates_ordered,
+        column_I: opens_ordered,
+        column_J: click_rates_ordered,
+        column_K: clicks_ordered,
     })
-data_frame_external3 = pd.DataFrame(
+data_raw = pd.DataFrame(
     {
-        column_5: open_rates_ordered,
-        column_6: ['', '', '', ''],
-    })
-data_frame_external4 = pd.DataFrame(
-    {
-        column_7: campaign_names_ordered,
-    })
-data_frame_external5 = pd.DataFrame(
-    {
-        column_8: click_rates_ordered,
-        'Empty3': ['', '', '', ''],
-        'Empty4': ['', '', '', ''],
-        'Empty5': ['', '', '', ''],
-        'Empty6': ['', '', '', ''],
-        column_9: sent_ordered,
-        'Empty7': ['', '', '', ''],
-        'Empty8': ['', '', '', ''],
-        'Empty9': ['', '', '', ''],
-        'Empty10': ['', '', '', ''],
-        column_10: opens_ordered,
-        column_11: clicks_ordered,
-    })
-data_frame_external6 = pd.DataFrame(
-    {
-        #column_6: ['=image(\"https://drive.google.com/uc?export=view&id={}\")'.format(file_id)],
-        column_6: ['=image("' + gfile.get('embedLink') + '")'],
+        column_A: campaign_dates_string_ordered,
+        column_B: list_names_ordered,
+        column_C: campaign_names_ordered,
+        column_D: subjects_ordered,
+        column_E: sent_ordered,
+        column_F: open_rates_ordered,
+        column_G: opens_ordered,
+        column_H: click_rates_ordered,
+        column_I: clicks_ordered,
+        column_J: [0, 0, 0],
+        column_K: [0, 0, 0],
+        column_L: [0, 0, 0],
+        column_M: [0, 0, 0],
+        column_N: ['=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
+                   '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
+                   '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))']
     })
 
-work_sheet.set_dataframe(data_frame_external1, (last_row, 2), copy_head=False)
-work_sheet.set_dataframe(data_frame_external2, (last_row, 6), copy_head=False)
-work_sheet.set_dataframe(data_frame_external3, (last_row, 7), copy_head=False)
-work_sheet.set_dataframe(data_frame_external4, (last_row, 9), copy_head=False)
-work_sheet.set_dataframe(data_frame_external5, (last_row, 10), copy_head=False)
-work_sheet.set_dataframe(data_frame_external6, (last_row, 8), copy_head=False)
+
+# work_sheet.set_dataframe(data_frame_1, (last_row, 1), copy_head=False)
+# work_sheet.set_dataframe(data_frame_2, (last_row, 6), copy_head=False)
+# work_sheet_raw.set_dataframe(data_raw, (last_raw_row, 1), copy_head=False)
 
 print('\nDone\n\tStat data > Google Sheet')
 
-# TODO 1. Insert template !!!           ALMOST
-#      2. Mailer sheet connection !!!
+# TODO insert unsub and complaint numbers

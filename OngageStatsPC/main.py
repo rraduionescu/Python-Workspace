@@ -36,25 +36,29 @@ opens = []
 open_rates = []
 clicks = []
 click_rates = []
+complaints = []
+unsubs = []
 
 html_data = ''
 parser = OngageStatParser()
 
-path = '/Users/IonescuRadu/Downloads'
+path = 'C:\\Users\\iones\\Downloads'
 for filename in glob.glob(os.path.join(path, '*.html')):
-    with open(os.path.join(os.getcwd(), filename), 'r') as file:
+    with open(os.path.join(os.getcwd(), filename), 'r', encoding="utf8") as file:
         html_data += file.read()
 parser.feed(html_data)
 
-options = {'width': 500, 'disable-smart-width': '', 'height': 9000}
-imgkit.from_file('/Users/IonescuRadu/Downloads/1_files/blank.html', 'raw_template.jpg', options=options)
+options = {'width': 500, 'disable-smart-width': '', 'height': 9000, 'enable-local-file-access': 1}
+conf = imgkit.config(wkhtmltoimage='C:\\Users\\iones\\AppData\\Roaming\\Python\\Python38\\site-packages\\wkhtmltopdf\\bin\\wkhtmltoimage.exe')
+imgkit.from_file('C:\\Users\\iones\\Downloads\\1_files\\blank.html', 'raw_template.jpg', options=options, config=conf)
 print('\t Email template > JPG')
 
 raw_image = Image.open('raw_template.jpg')
 raw_pixels = raw_image.load()
 bottom = 0
 for y in range(raw_image.height):
-    if raw_pixels[1, raw_image.height - y - 1] == (255, 255, 255):
+    # noinspection PyUnresolvedReferences
+    if raw_pixels[1, raw_image.height - y - 2] != (215, 215, 215):
         bottom = raw_image.height - y - 1
         break
 template = raw_image.crop((0, 0, raw_image.width, bottom))
@@ -67,6 +71,8 @@ campaign_name_indices = [(i + 1) for i, x in enumerate(all_data) if 'Name:' in x
 sent_indices = [(i + 2) for i, x in enumerate(all_data) if 'Sent -' in x]
 open_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unique Opens -' in x]
 click_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unique Clicks -' in x]
+complaint_indices = [(i + 2) for i, x in enumerate(all_data) if 'Complaints -' in x]
+unsub_indices = [(i + 2) for i, x in enumerate(all_data) if 'Unsubscribes -' in x]
 
 for i in campaign_date_indices:
     first = [idx for idx in range(len(all_data[i])) if all_data[i][idx].isupper()]
@@ -89,6 +95,10 @@ for i in open_indices:
 for i in click_indices:
     clicks.append(int(str(all_data[i]).replace(',', '', 1)))
     click_rates.append(all_data[i + 2])
+for i in complaint_indices:
+    complaints.append(int(str(all_data[i]).replace(',', '', 1)))
+for i in unsub_indices:
+    unsubs.append(int(str(all_data[i]).replace(',', '', 1)))
 
 campaign_dates_string = []
 for date in campaign_dates:
@@ -113,6 +123,8 @@ open_rates_ordered = open_rates.copy()
 click_rates_ordered = click_rates.copy()
 opens_ordered = opens.copy()
 clicks_ordered = clicks.copy()
+complaints_ordered = complaints.copy()
+unsubs_ordered = unsubs.copy()
 for i in range(len(list_names)):
     if list_names[i] == 'Never Joined':
         list_names_ordered[0] = list_names[i]
@@ -124,6 +136,8 @@ for i in range(len(list_names)):
         click_rates_ordered[0] = click_rates[i]
         opens_ordered[0] = opens[i]
         clicks_ordered[0] = clicks[i]
+        complaints_ordered[0] = complaints[i]
+        unsubs_ordered[0] = unsubs[i]
     if list_names[i] == 'Network':
         list_names_ordered[1] = list_names[i]
         campaign_dates_string_ordered[1] = campaign_dates_string[i]
@@ -134,6 +148,8 @@ for i in range(len(list_names)):
         click_rates_ordered[1] = click_rates[i]
         opens_ordered[1] = opens[i]
         clicks_ordered[1] = clicks[i]
+        complaints_ordered[1] = complaints[i]
+        unsubs_ordered[1] = unsubs[i]
     if list_names[i] == 'Get Openers':
         list_names_ordered[2] = list_names[i]
         campaign_dates_string_ordered[2] = campaign_dates_string[i]
@@ -144,11 +160,13 @@ for i in range(len(list_names)):
         click_rates_ordered[2] = click_rates[i]
         opens_ordered[2] = opens[i]
         clicks_ordered[2] = clicks[i]
+        complaints_ordered[2] = complaints[i]
+        unsubs_ordered[2] = unsubs[i]
 
 print('\nCampaign Stats ---------------------------------------------------------------------------------------------')
 for i in range(len(list_names_ordered)):
     print(
-        'Date: {} Campaign: {} List: {} \nSubject: {} \n\tSent: {} \n\tOpen rate: {} \n\tClick rate: {} \n\tOpen: {} \n\tClicks: {}'.format(
+        'Date: {} Campaign: {} List: {} \nSubject: {} \n\tSent: {} \n\tOpen rate: {} \n\tClick rate: {} \n\tOpen: {} \n\tClicks: {} \n\tComplaints: {} \n\tUnsubs: {}'.format(
             campaign_dates_string_ordered[i],
             str(campaign_names_ordered[i]).replace('\n', ','),
             list_names_ordered[i],
@@ -158,6 +176,8 @@ for i in range(len(list_names_ordered)):
             click_rates_ordered[i],
             opens_ordered[i],
             clicks_ordered[i],
+            complaints_ordered[i],
+            unsubs_ordered[i],
         ))
 print('------------------------------------------------------------------------------------------------------------')
 
@@ -175,57 +195,27 @@ column_K = 'Click #'
 column_L = 'Unsub #'
 column_M = 'Compl #'
 column_N = 'Swipe'
+column_Q = 'CID'
 
 google_client = pygsheets.authorize(service_file='ongagestats.json')
 book = google_client.open('Mailer Report')
-work_sheet = book[0]
-work_sheet_raw = book[1]
+work_sheet_raw = book[0]
 
 CL = 'client_secrets.json'
 AS = 'sheets'
 AV = 'v4'
 SC = ['https://www.googleapis.com/auth/spreadsheets']
 ID = '1Em4gIwCA73nPi_dUJY5hTvSdH6b57JD9Oz5X2qnZ1AY'
-
 service = Create_Service(CL, AS, AV, SC)
-response = service.spreadsheets().values().get(
-    spreadsheetId=ID,
-    range='OUTGOING!A2:A',
-).execute()
-last_row = len(response['values']) + 4
-counter = int(response['values'][-1][0].split('\n')[0]) + 1
 response = service.spreadsheets().values().get(
     spreadsheetId=ID,
     range='DATA!A1:A',
 ).execute()
-last_raw_row = len(response['values']) + 1
+response2 = service.spreadsheets().values().get(
+    spreadsheetId=ID,
+    range='DATA!Q1:Q',
+).execute()
 
-auth = GoogleAuth()
-drive = GoogleDrive(auth)
-googleFile = drive.CreateFile({'parents': [{'id': '1ECMflv2bw6ecDtt7q0TsG5Q4EIaDnsW5'}],
-                               'title': datetime.datetime.strptime(campaign_dates_string_ordered[2], '%d/%m/%Y').strftime('%b %d, %Y') + '.jpg'})
-googleFile.SetContentFile('template.jpg')
-googleFile.Upload()
-file_id = googleFile.get('id')
-
-mail_no = (str(counter) + '\n' + 'INT') if campaign_names_ordered[0] == 'LDI' else (str(counter) + '\n' + 'EXT')
-data_frame_1 = pd.DataFrame(
-    {
-        column_A: [mail_no],
-        column_B: [campaign_dates_string_ordered[0]],
-        column_C: [campaign_names_ordered[0]],
-        column_D: [subjects_ordered[0]],
-        column_E: ['=image("' + googleFile.get('embedLink') + '")'],
-    })
-data_frame_2 = pd.DataFrame(
-    {
-        column_F: list_names_ordered,
-        column_G: sent_ordered,
-        column_H: open_rates_ordered,
-        column_I: opens_ordered,
-        column_J: click_rates_ordered,
-        column_K: clicks_ordered,
-    })
 data_raw = pd.DataFrame(
     {
         column_A: campaign_dates_string_ordered,
@@ -237,20 +227,45 @@ data_raw = pd.DataFrame(
         column_G: opens_ordered,
         column_H: click_rates_ordered,
         column_I: clicks_ordered,
-        column_J: [0, 0, 0],
-        column_K: [0, 0, 0],
-        column_L: [0, 0, 0],
-        column_M: [0, 0, 0],
-        column_N: ['=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
-                   '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
-                   '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))']
+    })
+data_raw_2 = pd.DataFrame(
+    {
+        column_L: unsubs_ordered,
+        column_M: complaints_ordered,
     })
 
-
-# work_sheet.set_dataframe(data_frame_1, (last_row, 1), copy_head=False)
-# work_sheet.set_dataframe(data_frame_2, (last_row, 6), copy_head=False)
-# work_sheet_raw.set_dataframe(data_raw, (last_raw_row, 1), copy_head=False)
+date_src = [campaign_dates_string_ordered[0]]
+if date_src in response['values']:
+    update_raw_row = response['values'].index(date_src) + 1
+    work_sheet_raw.set_dataframe(data_raw, (update_raw_row, 1), copy_head=False)
+    work_sheet_raw.set_dataframe(data_raw_2, (update_raw_row, 14), copy_head=False)
+else:
+    last_raw_row = len(response['values']) + 1
+    auth = GoogleAuth()
+    drive = GoogleDrive(auth)
+    googleFile = drive.CreateFile({'parents': [{'id': '1ECMflv2bw6ecDtt7q0TsG5Q4EIaDnsW5'}],
+                                   'title': datetime.datetime.strptime(campaign_dates_string_ordered[0], '%d/%m/%Y').strftime(
+                                       '%b %d, %Y') + '.jpg'})
+    googleFile.SetContentFile('template.jpg')
+    googleFile.Upload()
+    file_id = googleFile.get('id')
+    data_raw_3 = pd.DataFrame(
+        {
+            column_N: [
+                '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
+                '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))',
+                '=HYPERLINK("https://drive.google.com/uc?id=' + file_id + '", IMAGE("https://drive.google.com/uc?id=' + file_id + '"))']
+        })
+    data_raw_4 = pd.DataFrame(
+        {
+            column_Q: [
+                int(response2['values'][last_raw_row-2][0])+1,
+                int(response2['values'][last_raw_row-2][0])+1,
+                int(response2['values'][last_raw_row-2][0])+1]
+        })
+    work_sheet_raw.set_dataframe(data_raw, (last_raw_row, 1), copy_head=False)
+    work_sheet_raw.set_dataframe(data_raw_2, (last_raw_row, 14), copy_head=False)
+    work_sheet_raw.set_dataframe(data_raw_3, (last_raw_row, 16), copy_head=False)
+    work_sheet_raw.set_dataframe(data_raw_4, (last_raw_row, 17), copy_head=False)
 
 print('\nDone\n\tStat data > Google Sheet')
-
-# TODO insert unsub and complaint numbers
